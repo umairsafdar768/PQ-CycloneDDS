@@ -43,12 +43,20 @@
 #define ADJUSTED_GUID_PREFIX_FLAG 0x80
 
 typedef unsigned char HashValue_t[SHA256_DIGEST_LENGTH];
-//{modk} add constant for kyber here{done}
+//add constant for kyber
 static const char *AUTH_DSIG_ALGO_RSA_2048_SHA256_IDENT = "RSASSA-PSS-SHA256";
 static const char *AUTH_DSIG_ALGO_ECDSA_SHA256_IDENT = "ECDSA-SHA256";
 static const char *AUTH_DSIG_ALGO_DILITHIUM2_IDENT = "DiLiThIuM2";
 static const char *AUTH_DSIG_ALGO_DILITHIUM3_IDENT = "DiLiThIuM3";
 static const char *AUTH_DSIG_ALGO_DILITHIUM5_IDENT = "DiLiThIuM5";
+//Falcon 2 varients
+static const char *AUTH_DSIG_ALGO_FALCON512_IDENT = "FaLcOn512";
+static const char *AUTH_DSIG_ALGO_FALCON1024_IDENT = "FaLcOn1024";
+//SPHICS+ 4 varients
+static const char *AUTH_DSIG_ALGO_SPHICSSHA2128FSIMPLE_IDENT = "SpHiNcSsHa2128fSiMpLe";
+static const char *AUTH_DSIG_ALGO_SPHICSSHA2128SSIMPLE_IDENT = "SpHiNcSsHa2128sSiMpLe";
+static const char *AUTH_DSIG_ALGO_SPHICSSHA2192FSIMPLE_IDENT = "SpHiNcSsHa2192fSiMpLe";
+static const char *AUTH_DSIG_ALGO_SPHICSSHAKE128FSIMPLE_IDENT = "SpHiNcSsHaKe128fSiMpLe";
 static const char *AUTH_KAGREE_ALGO_RSA_2048_SHA256_IDENT = "DH+MODP-2048-256";
 static const char *AUTH_KAGREE_ALGO_ECDH_PRIME256V1_IDENT = "ECDH+prime256v1-CEUM";
 static const char *AUTH_KAGREE_ALGO_KYBER_768_SHA256_IDENT = "KYBER-768-256";
@@ -142,11 +150,9 @@ typedef struct HandshakeInfo
   IdentityRelation *relation;
   HashValue_t hash_c1;
   HashValue_t hash_c2;
-  //{modk} remane ldh to something for Kyberkey{don't change}{done}
   EVP_PKEY *ldh;
-  //{modk}change it's type so that it can store ssecret ciphertext{dont}
   unsigned char *rdh;
-  //{modk} to hold plain text shared secret and its length{done}
+  //to hold plain text shared secret and its length
   unsigned char *ptext_kyber_secret;
   DDS_Security_long *ptext_kyber_secret_length;
   DDS_Security_SharedSecretHandleImpl *shared_secret_handle_impl;
@@ -275,7 +281,7 @@ static LocalIdentityInfo *local_identity_info_new(DDS_Security_DomainId domainId
   identity->crl = crl;
   identity->permissionsDocument = NULL;
   identity->dsignAlgoKind = get_authentication_algo_kind(identityCert);
-  //{modk} change to kyber here{done}
+  //change to kyber
   identity->kagreeAlgoKind = AUTH_ALGO_KIND_KYBER_768;
 
   memcpy(&identity->candidateGUID, candidate_participant_guid, sizeof(DDS_Security_GUID_t));
@@ -470,6 +476,23 @@ static const char *get_dsign_algo(AuthenticationAlgoKind_t kind)
     return AUTH_DSIG_ALGO_DILITHIUM5_IDENT;
   case AUTH_ALGO_KIND_DILITHIUM5:
     return AUTH_DSIG_ALGO_DILITHIUM5_IDENT;
+
+  //Falcon 2 varients
+  case AUTH_ALGO_KIND_FALCON512:
+    return AUTH_DSIG_ALGO_FALCON512_IDENT;
+  case AUTH_ALGO_KIND_FALCON1024:
+    return AUTH_DSIG_ALGO_FALCON1024_IDENT;
+
+  //SPHINCS+ 4 varients
+  case AUTH_ALGO_KIND_SPHINCSSHA2128F:
+    return AUTH_DSIG_ALGO_SPHICSSHA2128FSIMPLE_IDENT;
+  case AUTH_ALGO_KIND_SPHINCSSHA2128S:
+    return AUTH_DSIG_ALGO_SPHICSSHA2128SSIMPLE_IDENT;
+  case AUTH_ALGO_KIND_SPHINCSSHA2192F:
+    return AUTH_DSIG_ALGO_SPHICSSHA2192FSIMPLE_IDENT;
+  case AUTH_ALGO_KIND_SPHINCSSHAKE128F:
+    return AUTH_DSIG_ALGO_SPHICSSHAKE128FSIMPLE_IDENT;
+
   default:
     assert(0);
     return "";
@@ -478,7 +501,7 @@ static const char *get_dsign_algo(AuthenticationAlgoKind_t kind)
 
 static const char *get_kagree_algo(AuthenticationAlgoKind_t kind)
 {
-  //{modk}add cases for Kyber here{done}
+  //add cases for Kyber
   switch (kind)
   {
   case AUTH_ALGO_KIND_RSA_2048:
@@ -518,12 +541,29 @@ static AuthenticationAlgoKind_t get_dsign_algo_from_octseq(const DDS_Security_Oc
       return AUTH_ALGO_KIND_DILITHIUM3;
   if (str_octseq_equal(AUTH_DSIG_ALGO_DILITHIUM5_IDENT, name))
       return AUTH_ALGO_KIND_DILITHIUM5;
+
+  //Falcon 2 varients
+  if (str_octseq_equal(AUTH_DSIG_ALGO_FALCON512_IDENT, name))
+      return AUTH_ALGO_KIND_FALCON512;
+  if (str_octseq_equal(AUTH_DSIG_ALGO_FALCON1024_IDENT, name))
+      return AUTH_ALGO_KIND_FALCON1024;
+
+  //SPHINCS+ 4 varients
+  if (str_octseq_equal(AUTH_DSIG_ALGO_SPHICSSHA2128FSIMPLE_IDENT, name))
+      return AUTH_ALGO_KIND_SPHINCSSHA2128F;
+  if (str_octseq_equal(AUTH_DSIG_ALGO_SPHICSSHA2128SSIMPLE_IDENT, name))
+      return AUTH_ALGO_KIND_SPHINCSSHA2128S;
+  if (str_octseq_equal(AUTH_DSIG_ALGO_SPHICSSHA2192FSIMPLE_IDENT, name))
+      return AUTH_ALGO_KIND_SPHINCSSHA2192F;
+  if (str_octseq_equal(AUTH_DSIG_ALGO_SPHICSSHAKE128FSIMPLE_IDENT, name))
+      return AUTH_ALGO_KIND_SPHINCSSHAKE128F;
+  
   return AUTH_ALGO_KIND_UNKNOWN;
 }
 
 static AuthenticationAlgoKind_t get_kagree_algo_from_octseq(const DDS_Security_OctetSeq *name)
 {
-  //{modk} add cases for Kyber here{done}
+  //add cases for Kyber
   if (str_octseq_equal(AUTH_KAGREE_ALGO_RSA_2048_SHA256_IDENT, name))
     return AUTH_ALGO_KIND_RSA_2048;
   if (str_octseq_equal(AUTH_KAGREE_ALGO_ECDH_PRIME256V1_IDENT, name))
@@ -1182,12 +1222,9 @@ DDS_Security_ValidationResult_t begin_handshake_request(dds_security_authenticat
   SecurityObject *obj;
   LocalIdentityInfo *localIdent;
   RemoteIdentityInfo *remoteIdent;
-  //{modk}rename to kyberKey{done}
   //EVP_PKEY *dhkey;
   EVP_PKEY *kyberkey;
-  //{modk}rename 2nd char pointer for kyberKey
   unsigned char *certData, *kyberPubKeyData = NULL;
-  //{modk}rename 2nd uint32_t variable for kyberKey{done}
   uint32_t certDataSize, kyberPubKeyDataSize;
   uint32_t tokcount = impl->include_optional ? 8 : 7;
   int created = 0;
@@ -1230,15 +1267,11 @@ DDS_Security_ValidationResult_t begin_handshake_request(dds_security_authenticat
 
   if (!handshake->ldh)
   {
-    //{modk} add a function to initialize oqs-provider contexts{done}
-    //{modk} add error checks {maybe}
     init_oqs_prov_contexts();
-    //{modk} modify this to generate kyber keys{done} and rename dhkey parameter{done}
     if (generate_dh_keys(&kyberkey, localIdent->kagreeAlgoKind, ex) != DDS_SECURITY_VALIDATION_OK)
       goto err_gen_dh_keys;
     handshake->ldh = kyberkey;
   }
-  //{modk} modify this to serialize kyber public key{done}
   if (dh_public_key_to_oct(handshake->ldh, localIdent->kagreeAlgoKind, &kyberPubKeyData, &kyberPubKeyDataSize, ex) != DDS_SECURITY_VALIDATION_OK)
     goto err_get_public_key;
 
@@ -1263,9 +1296,7 @@ DDS_Security_ValidationResult_t begin_handshake_request(dds_security_authenticat
   }
 
   /* Set the DH public key associated with the local participant in dh1 property */
-  //{modk} rename dhPubKeyData and dhPubKeyDataSize accordingly{done}
   assert(kyberPubKeyData);
-  //{modk} comment below one cuz kyber pub key may be larger than this !? {done} 
   //assert(kyberPubKeyDataSize < 1200);
   DDS_Security_BinaryProperty_set_by_ref(&tokens[tokidx++], DDS_AUTHTOKEN_PROP_DH1, kyberPubKeyData, kyberPubKeyDataSize);
 
@@ -1447,14 +1478,12 @@ create_dhkey_property(const char *name, EVP_PKEY *pkey, AuthenticationAlgoKind_t
   DDS_Security_BinaryProperty_t *prop;
   unsigned char *data;
   uint32_t len;
-  //{modk} serialize kyber key here instead of dhkey{already taken care of inside below fn}
   if (dh_public_key_to_oct(pkey, kagreeAlgoKind, &data, &len, ex) != DDS_SECURITY_VALIDATION_OK)
     return NULL;
   prop = DDS_Security_BinaryProperty_alloc();
   DDS_Security_BinaryProperty_set_by_ref(prop, name, data, len);
   return prop;
 }
-//{modk} change dh1_ref to kyberpubkey_ref and dh2_ref to secret_ciphertext in parameters
 static DDS_Security_ValidationResult_t validate_handshake_token_impl (const DDS_Security_HandshakeMessageToken *token, enum handshake_token_type token_type,
     HandshakeInfo *handshake, X509Seq *trusted_ca_list, const DDS_Security_BinaryProperty_t *dh1_ref, const DDS_Security_BinaryProperty_t *dh2_ref, DDS_Security_SecurityException *ex)
 {
@@ -1462,7 +1491,6 @@ static DDS_Security_ValidationResult_t validate_handshake_token_impl (const DDS_
   X509 *identityCert = NULL;
   const DDS_Security_BinaryProperty_t *c_pdata = NULL;
   AuthenticationAlgoKind_t dsignAlgoKind = AUTH_ALGO_KIND_UNKNOWN, kagreeAlgoKind = AUTH_ALGO_KIND_UNKNOWN;
-  //{modk}change dh1 and dh2 here to kyberpubkey and sec_cipher
   const DDS_Security_BinaryProperty_t *dh1 = NULL, *dh2 = NULL;
   const DDS_Security_BinaryProperty_t *hash_c1 = NULL, *hash_c2 = NULL;
   const DDS_Security_BinaryProperty_t *challenge1 = NULL, *challenge2 = NULL;
@@ -1470,7 +1498,6 @@ static DDS_Security_ValidationResult_t validate_handshake_token_impl (const DDS_
   const char *token_class_id = NULL;
 
   assert (relation);
-  //change dh1_ref to kyberpubkey_ref and dh2_ref to secret_ciphertext_ref
   assert (dh1_ref != NULL || token_type == HS_TOKEN_REQ);
   assert (dh2_ref != NULL || token_type == HS_TOKEN_REQ || token_type == HS_TOKEN_REPLY);
 
@@ -1529,31 +1556,23 @@ static DDS_Security_ValidationResult_t validate_handshake_token_impl (const DDS_
 
   if (token_type == HS_TOKEN_REQ)
   {
-    //{modk} rename to pkyberkey_req
     EVP_PKEY *pdhkey_req = NULL;
-    
-    //{modk} rename dh1 to kyberpubkey
     if ((dh1 = find_required_nonempty_binprop (token, DDS_AUTHTOKEN_PROP_DH1, ex)) == NULL)
       return DDS_SECURITY_VALIDATION_FAILED;
-    //{modk} rename parameter to pkyberkey_req
-    //{modk}add case for kyber key inside below function{done}
+    //add case for kyber key inside below function
     if (dh_oct_to_public_key (&pdhkey_req, kagreeAlgoKind, dh1->value._buffer, dh1->value._length, ex) != DDS_SECURITY_VALIDATION_OK)
       return DDS_SECURITY_VALIDATION_FAILED;
     if (handshake->rdh)
       EVP_PKEY_free (handshake->rdh);
-    //{modk} rename pdhkey_req to pkyberkey_req
     handshake->rdh = pdhkey_req;
-    //{modk}We also set the handshake->ldh to pkyberkey_req as well, cuz there is no key pair for this participant{done}
     if (handshake->ldh)
        EVP_PKEY_free (handshake->ldh);
     handshake->ldh = pdhkey_req;
   }
   else
   {
-    //{modk} rename dh1 to kyberpubkey
     dh1 = DDS_Security_DataHolder_find_binary_property (token, DDS_AUTHTOKEN_PROP_DH1);
     //checking if dh1 received from other party is the same as local public key
-    //{modk} rename dh1 to kyberpubkey and dh1_ref to kyberpubkey_ref{not changing names rn}
     if (dh1 && !DDS_Security_BinaryProperty_equal(dh1_ref, dh1))
       return set_exception (ex, "process_handshake: %s token property "DDS_AUTHTOKEN_PROP_DH1" not correct", (token_type == HS_TOKEN_REPLY) ? "Reply" : "Final");
     dh1 = dh1_ref;
@@ -1571,43 +1590,29 @@ static DDS_Security_ValidationResult_t validate_handshake_token_impl (const DDS_
 
     if (token_type == HS_TOKEN_REPLY)
     {
-      //{modk} comment below line. Add a new variable that will hold the received cipher text, recvd_secret_ciphertext.
       EVP_PKEY *pdhkey_reply = NULL;
-      //{modk} unknowndatatype recvd_secret_ciphertext;
-      //{modk} unknowndatatype recvd_secret_ciphertextlength;
-
-      //{modk} the below dh2 property contains the received encrypted secret. Decrypt it! 
+      //the below dh2 property contains the received encrypted secret. Decrypt it! 
       if ((dh2 = find_required_nonempty_binprop (token, DDS_AUTHTOKEN_PROP_DH2, ex)) == NULL)
         return DDS_SECURITY_VALIDATION_FAILED;
-      //{modk} We need to use this dh2 property value and length alongwith our kyber private key to decrypt it and get shared secret. comment below two lines.
       // if (dh_oct_to_public_key (&pdhkey_reply, kagreeAlgoKind, dh2->value._buffer, dh2->value._length, ex) != DDS_SECURITY_VALIDATION_OK)
       //   return DDS_SECURITY_VALIDATION_FAILED;
 
-      //add variables to hold decrypted secret and its length
       unsigned char *ptext_kyber_secret1;
       DDS_Security_long *ptext_kyber_secret_length1;
-      //{modk} & with handshake->ldh or not ? decide after 1st compile
       if (decrypt_kyber_secret_cipher (&handshake->ldh, kagreeAlgoKind, dh2->value._buffer, dh2->value._length, ptext_kyber_secret1, ptext_kyber_secret_length1, ex) != DDS_SECURITY_VALIDATION_OK)
         return DDS_SECURITY_VALIDATION_FAILED;
 
-      //{modk} set decrypted secret and its length for further use
+      //set decrypted secret and its length
       handshake->ptext_kyber_secret = ptext_kyber_secret1;
       handshake->ptext_kyber_secret_length = ptext_kyber_secret_length1;
-      //{modk} extract out the value and length of received secret_ciphertext into the variable recvd_secret_ciphertext and recvd_secret_ciphertextlength
-      //recvd_secret_ciphertext = dh2->value._buffer;
-      //recvd_secret_ciphertextlegth = dh2->value._length
 
-      //{modk} instead of setting rdh, set the decrypted secret and its length equal to ptext_kyber_secret and ptext_kyber_secret_length respec.
       if (handshake->rdh)
            EVP_PKEY_free (handshake->rdh);
-      //{modk} comment below line
       //handshake->rdh = pdhkey_reply;
-      //below is necessary cuz this will be sent back to responder i think in the last message. Keep it 
       //handshake->rdh = dh2->value._buffer;
     }
     else
     {
-      //{revisit} after 1st compile
       dh2 = DDS_Security_DataHolder_find_binary_property (token, DDS_AUTHTOKEN_PROP_DH2);
       if (dh2 && !DDS_Security_BinaryProperty_equal(dh2_ref, dh2))
         return set_exception (ex, "process_handshake: Final token property "DDS_AUTHTOKEN_PROP_DH2" not correct");
@@ -1696,7 +1701,6 @@ static DDS_Security_ValidationResult_t validate_handshake_token_impl (const DDS_
 
   return DDS_SECURITY_VALIDATION_OK;
 }
-//{modk} change dh1_ref to kyberpubkey_ref and dh2_ref to secret_ciphertext in parameters
 static DDS_Security_ValidationResult_t validate_handshake_token(const DDS_Security_HandshakeMessageToken *token, enum handshake_token_type token_type, HandshakeInfo *handshake,
     X509Seq *trusted_ca_list, const DDS_Security_BinaryProperty_t *dh1_ref, const DDS_Security_BinaryProperty_t *dh2_ref, DDS_Security_SecurityException *ex)
 {
@@ -1747,15 +1751,11 @@ DDS_Security_ValidationResult_t begin_handshake_reply(dds_security_authenticatio
   SecurityObject *obj;
   LocalIdentityInfo *localIdent;
   RemoteIdentityInfo *remoteIdent;
-  //{modk} rename to kyberkeylocal
   EVP_PKEY *dhkeyLocal = NULL;
-  //{modk} rename 2nd one to kyberPubKeyData{done}
   unsigned char *certData, *dhPubKeyData;
-  //{modk} variable to hold secret generated by kyber encrypt function{done}
+  //to hold secret generated by kyber encrypt function
   unisgned char *kybersecretData;
-  //{modk} rename 2nd one to kyberPubKeyDataSize
   uint32_t certDataSize, dhPubKeyDataSize;
-  //{modk} variable to hold kyber secret length {done}
   uint32_t kybersecretDataSize;
   uint32_t tokcount = impl->include_optional ? 12 : 9;
   int created = 0;
@@ -1791,39 +1791,34 @@ DDS_Security_ValidationResult_t begin_handshake_reply(dds_security_authenticatio
     relation = handshake->relation;
     assert(relation);
   }
-  //{modk}responder specific modifications in this function{done}
+  //responder specific modifications
   if (validate_handshake_token(handshake_message_in, HS_TOKEN_REQ, handshake, &(impl->trustedCAList), NULL, NULL, ex) != DDS_SECURITY_VALIDATION_OK)
     goto err_inv_token;
   if (get_certificate_contents(localIdent->identityCert, &certData, &certDataSize, ex) != DDS_SECURITY_VALIDATION_OK)
     goto err_alloc_cid;
 
-  // //{modk} local key being set here. Comment this whole if block, it's not needed as local key has already been set equal to remote public key. Comment till ***{done}
+  // Not needed as local key has already been set equal to remote public key.
   // if (!handshake->ldh)
   // {
-  //   //{modk}no need to generate keys for this participant. comment two below lines
   //   if (generate_dh_keys(&dhkeyLocal, remoteIdent->kagreeAlgoKind, ex) != DDS_SECURITY_VALIDATION_OK)
   //     goto err_gen_dh_keys;
 
-  //   //{modk} comment this line, bcz handshake->ldh has already been set to the deserialized received kyber public key of other party.
   //   handshake->ldh = dhkeyLocal;
-  //   //{modk}see what to do for this ?
   //   EVP_PKEY_copy_parameters(handshake->rdh, handshake->ldh);
   // }
-  // //***
+  //
 
-  //{modk}no need to serialize now. Comment below two lines{done}
+  //no need to serialize now.
    //if (dh_public_key_to_oct(handshake->ldh, remoteIdent->kagreeAlgoKind, &dhPubKeyData, &dhPubKeyDataSize, ex) != DDS_SECURITY_VALIDATION_OK)
   //   goto err_get_public_key;
 
-  //{modk} add a function to initialize oqs-provider contexts{done}
-  //{modk} add error checks {maybe}
   init_oqs_prov_contexts();
 
-  //{modk} create and call a generate_kyber_secret_and_cipher() fn that generates and encrypts a secret. This encrypted secret is now to be sent to other party as dh2 property{done}
+  //Generate and encrypt a secret. This encrypted secret is now to be sent to other party as dh2 property
   if(generate_kyber_secret_and_cipher(handshake->ldh, remoteIdent->kagreeAlgoKind, &dhPubKeyData, &dhPubKeyDataSize, &kybersecretData, &kybersecretDataSize, ex) != DDS_SECURITY_VALIDATION_OK)
     goto err_gen_kyber_secret;
   
-  //{modk} set shared secret plain text{done}
+  //set shared secret plain text
   handshake->ptext_kyber_secret = dhPubKeyData;
   handshake->ptext_kyber_secret_length = dhPubKeyDataSize;
 
@@ -1845,10 +1840,9 @@ DDS_Security_ValidationResult_t begin_handshake_reply(dds_security_authenticatio
   DDS_Security_BinaryPropertySeq bseq = { ._length = 5, ._buffer = tokens };
   get_hash_binary_property_seq(&bseq, handshake->hash_c2);
 
-  //{modk} here we set the secret cipher text generated by above generate_kyber_secret_and_cipher fn as dh2 property{done}
+  //set the secret cipher text generated by above fn as dh2 property
   /* Set the DH public key associated with the local participant in dh2 property */
   DDS_Security_BinaryProperty_t *dh2 = &tokens[tokidx++];
-  //{modk}comment below line, instead set dh2 to 'stuff_to_hold_cipher_text' of length 'stuff_to_hold_cipher_length'{don't change names}
   DDS_Security_BinaryProperty_set_by_ref(dh2, DDS_AUTHTOKEN_PROP_DH2, kybersecretData, kybersecretDataSize);
 
   /* Find the dh1 property from the received request token */
@@ -1876,7 +1870,6 @@ DDS_Security_ValidationResult_t begin_handshake_reply(dds_security_authenticatio
     size_t signlen;
     DDS_Security_BinaryProperty_t *hash_c1_val = hash_value_to_binary_property(DDS_AUTHTOKEN_PROP_HASH_C1, handshake->hash_c1);
     DDS_Security_BinaryProperty_t *hash_c2_val = hash_value_to_binary_property(DDS_AUTHTOKEN_PROP_HASH_C2, handshake->hash_c2);
-    //{modk} rename variables inside signature as necessary
     const DDS_Security_BinaryProperty_t *binary_properties[HANDSHAKE_SIGNATURE_CONTENT_SIZE] = { hash_c2_val, challenge2, dh2, challenge1, dh1, hash_c1_val };
     DDS_Security_ValidationResult_t result = create_signature(localIdent->privateKey, binary_properties, HANDSHAKE_SIGNATURE_CONTENT_SIZE, &sign, &signlen, ex);
     DDS_Security_BinaryProperty_free(hash_c1_val);
@@ -1904,7 +1897,7 @@ err_get_public_key:
 err_gen_dh_keys:
   ddsrt_free(certData);
 err_alloc_cid:
-//{modk} to handle secret generation error
+//handle secret generation error
 err_gen_kyber_secret:
   OPENSSL_free(kybersecretData);
 err_inv_token:
@@ -1917,26 +1910,22 @@ err_inv_handle:
   ddsrt_mutex_unlock(&impl->lock);
   return DDS_SECURITY_VALIDATION_FAILED;
 }
-//{modk} modify it accordingly for kyber case
 static bool generate_shared_secret(const HandshakeInfo *handshake, unsigned char **shared_secret, DDS_Security_long *length, DDS_Security_SecurityException *ex)
 {
   //EVP_PKEY_CTX *ctx;
   size_t skeylen;
   //unsigned char *secret = NULL;
   *shared_secret = NULL;
-  //{modk} not needed
   // if (!(ctx = EVP_PKEY_CTX_new(handshake->ldh, NULL /* no engine */)))
   // {
   //   DDS_Security_Exception_set_with_openssl_error(ex, DDS_AUTH_PLUGIN_CONTEXT, DDS_SECURITY_ERR_UNDEFINED_CODE, DDS_SECURITY_VALIDATION_FAILED, "process_handshake: Shared secret failed to create context: ");
   //   goto fail_ctx_new;
   // }
-  //{modk}not needed
   // if (EVP_PKEY_derive_init(ctx) <= 0)
   // {
   //   DDS_Security_Exception_set_with_openssl_error(ex, DDS_AUTH_PLUGIN_CONTEXT, DDS_SECURITY_ERR_UNDEFINED_CODE, DDS_SECURITY_VALIDATION_FAILED, "process_handshake: Shared secret failed to initialize context: ");
   //   goto fail_derive;
   // }
-  //{modk} not needed
   // if (EVP_PKEY_derive_set_peer(ctx, handshake->rdh) <= 0)
   // {
   //   DDS_Security_Exception_set_with_openssl_error(ex, DDS_AUTH_PLUGIN_CONTEXT, DDS_SECURITY_ERR_UNDEFINED_CODE, DDS_SECURITY_VALIDATION_FAILED, "process_handshake: Shared secret failed to set peer key: ");
@@ -1945,18 +1934,13 @@ static bool generate_shared_secret(const HandshakeInfo *handshake, unsigned char
 
   /* Determine buffer length */
   //use secret length here in your case
-  //{modk} not needed
   // if (EVP_PKEY_derive(ctx, NULL, &skeylen) <= 0)
   // {
   //   DDS_Security_Exception_set_with_openssl_error(ex, DDS_AUTH_PLUGIN_CONTEXT, DDS_SECURITY_ERR_UNDEFINED_CODE, DDS_SECURITY_VALIDATION_FAILED, "process_handshake:  Shared secret failed to determine key length: ");
   //   goto fail_derive;
-  // }      
-
-  //{modk}typecast here 
+  // }
   skeylen = (size_t)handshake->ptext_kyber_secret_length;
   //secret = ddsrt_malloc(skeylen);
-
-  //{modk}not needed
   // if (EVP_PKEY_derive(ctx, secret, &skeylen) <= 0)
   // {
   //   DDS_Security_Exception_set_with_openssl_error(ex, DDS_AUTH_PLUGIN_CONTEXT, DDS_SECURITY_ERR_UNDEFINED_CODE, DDS_SECURITY_VALIDATION_FAILED, "process_handshake: Could not compute the shared secret: ");
@@ -1992,11 +1976,9 @@ DDS_Security_ValidationResult_t process_handshake(dds_security_authentication *i
   HandshakeInfo *handshake = NULL;
   IdentityRelation *relation = NULL;
   SecurityObject *obj;
-  //{modk}rename to kyberpubkey_gen and kyber_cipher_gen 
   DDS_Security_BinaryProperty_t *dh1_gen = NULL, *dh2_gen = NULL;
   const uint32_t tsz = impl->include_optional ? 7 : 3;
   DDS_Security_octet *challenge1_ref_for_shared_secret, *challenge2_ref_for_shared_secret;
-  //{modk} defining out here so can be used for both parties separately
   //unsigned char *shared_secret;
   //DDS_Security_long shared_secret_length;
 
@@ -2018,16 +2000,13 @@ DDS_Security_ValidationResult_t process_handshake(dds_security_authentication *i
   {
   //initiator case
   case CREATEDREQUEST:
-    //{modk}rename dh1_gen to kyberpubkey_gen
     if ((dh1_gen = create_dhkey_property(DDS_AUTHTOKEN_PROP_DH1, handshake->ldh, relation->localIdentity->kagreeAlgoKind, ex)) == NULL)
       goto err_inv_token;
 
     /* The source of the handshake_handle is a begin_handshake_request function. So, handshake_message_in is from a remote begin_handshake_reply function */
     /* Verify Message Token contents according to Spec 9.3.2.5.2 (Reply Message)  */
-    //{modk} rename dh1_gen as above
     if (validate_handshake_token(handshake_message_in, HS_TOKEN_REPLY, handshake, &(impl->trustedCAList), dh1_gen, NULL, ex) != DDS_SECURITY_VALIDATION_OK)
       goto err_inv_token;
-    //{modk} comment below line{done}
     //EVP_PKEY_copy_parameters(handshake->rdh, handshake->ldh);
 
     /* Find the dh1 property from the received request token */
@@ -2044,10 +2023,9 @@ DDS_Security_ValidationResult_t process_handshake(dds_security_authentication *i
     DDS_Security_BinaryProperty_t *challenge2 = &tokens[idx++];
     DDS_Security_BinaryProperty_set_by_value(challenge2, DDS_AUTHTOKEN_PROP_CHALLENGE2, relation->rchallenge->value, sizeof(AuthenticationChallenge));
 
-    //{modk} renames
     if (impl->include_optional)
     {
-      //{modk} here dh2 contains the received encrypted secret and its length (hopefully!)
+      //Here dh2 contains the received encrypted secret and its length
       DDS_Security_BinaryProperty_set_by_value(&tokens[idx++], DDS_AUTHTOKEN_PROP_DH1, dh1_gen->value._buffer, dh1_gen->value._length);
       DDS_Security_BinaryProperty_set_by_value(&tokens[idx++], DDS_AUTHTOKEN_PROP_DH2, dh2->value._buffer, dh2->value._length);
       DDS_Security_BinaryProperty_set_by_value(&tokens[idx++], DDS_AUTHTOKEN_PROP_HASH_C2, handshake->hash_c2, sizeof(HashValue_t));
@@ -2078,14 +2056,10 @@ DDS_Security_ValidationResult_t process_handshake(dds_security_authentication *i
     break;
   //responder case
   case CREATEDREPLY:
-    //{modk} rename dh1_gen as above
     if ((dh1_gen = create_dhkey_property(DDS_AUTHTOKEN_PROP_DH1, handshake->rdh, relation->remoteIdentity->kagreeAlgoKind, ex)) == NULL)
       goto err_inv_token;
-    //{modk} no need for dh2. comment below 2 lines
     if ((dh2_gen = create_dhkey_property(DDS_AUTHTOKEN_PROP_DH2, handshake->ldh, relation->remoteIdentity->kagreeAlgoKind, ex)) == NULL)
       goto err_inv_token;
-    //{modk}set generated shared secret cipher text in dh2_gen
-    //dh2_gen = handshake->ldh; (?)
 
     /* The source of the handshake_handle is a begin_handshake_reply function So, handshake_message_in is from a remote process_handshake function */
     /* Verify Message Token contents according to Spec 9.3.2.5.3 (Final Message)   */
@@ -2100,12 +2074,9 @@ DDS_Security_ValidationResult_t process_handshake(dds_security_authentication *i
     ddsrt_mutex_unlock(&impl->lock);
     goto err_bad_param;
   }
-  //{modk} remove this section cuz handled above{don't}
   {
     DDS_Security_long shared_secret_length;
     unsigned char *shared_secret;
-    //{modk} need to move this function above inside switch-case statements, after their validate_handshake_token() func and challanges2 and challange1 have been set bcz secret calcualtion is different on both sides.
-    //{modk} heavy modifications to generate_shared_secret() function. Use decapsulate function of oqs-provider here to get shared secret from ciphertext.
     if (!generate_shared_secret(handshake, &shared_secret, &shared_secret_length, ex))
       goto err_openssl;
     handshake->shared_secret_handle_impl = ddsrt_malloc(sizeof(DDS_Security_SharedSecretHandleImpl));

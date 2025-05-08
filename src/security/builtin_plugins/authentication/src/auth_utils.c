@@ -27,7 +27,7 @@
 #include "dds/security/openssl_support.h"
 #include "auth_utils.h"
 #include <openssl/evp.h>
-//{modk}add headers for oqs-provider{done}
+//add headers for oqs-provider
 #include "oqs/oqs.h"
 #include "test_common.h"
 #include <openssl/buffer.h>
@@ -40,7 +40,7 @@
 #include <openssl/trace.h>
 #include <string.h>
 
-//{modk} oqs-provider variables{done}
+//oqs-provider variables - update configfile path accordingly
 static OSSL_LIB_CTX *libctx = NULL;
 static char *modulename = "oqsprovider";
 static char *configfile = "/home/user/ros2_iron/src/eclipse-cyclonedds/cyclonedds/src/security/builtin_plugins/authentication/src/oqs.cnf";
@@ -49,14 +49,14 @@ static OSSL_LIB_CTX *keyctx = NULL;
 static OSSL_LIB_CTX *testctx = NULL;
 static OSSL_PROVIDER *dfltprov = NULL;
 static OSSL_PROVIDER *keyprov = NULL;
-//{modk} main fn variables
+
 int errcnt = 0, test = 0, query_nocache;
 OSSL_PROVIDER *oqsprov = NULL;
 const OSSL_ALGORITHM *algs;
 
 #define nelem(a) (sizeof(a) / sizeof((a)[0]))
 
-//{modk} from test_common.c file{done}
+//from test_common.c file
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 int alg_is_enabled(const char *algname)
 {
@@ -82,7 +82,7 @@ void load_oqs_provider(OSSL_LIB_CTX *libctx, const char *modulename,
     T(OSSL_LIB_CTX_load_config(libctx, configfile));
     T(OSSL_PROVIDER_available(libctx, modulename));
 }
-//{modk} oqs-provider structures{done}
+
 typedef struct endecode_params_st {
     char *format;
     char *structure;
@@ -111,22 +111,13 @@ static ENDECODE_PARAMS test_params_list[] = {
 
 void init_oqs_prov_contexts()
 {
-  //{modk} main fun content
-  T((libctx = OSSL_LIB_CTX_new()) != NULL);
-  
+  T((libctx = OSSL_LIB_CTX_new()) != NULL); 
   load_oqs_provider(libctx, modulename, configfile);
   dfltprov = OSSL_PROVIDER_load(keyctx, "default");
   keyprov = OSSL_PROVIDER_load(keyctx, modulename);
   oqsprov = OSSL_PROVIDER_load(libctx, modulename);
   printf("initiator oqs contexts initialized!\n");
 }
-
-
-
-
-
-
-
 
 #define MAX_TRUSTED_CA 100
 
@@ -306,6 +297,89 @@ static DDS_Security_ValidationResult_t check_key_type_and_size(EVP_PKEY *key, in
     
     }
     
+    //Falcon 2 Varients
+    else if (strcmp(pq_key_type_str, "falcon512")==0) {
+    	printf("FaLcOn512 Identifieddd\n");
+        //kind = AUTH_ALGO_KIND_FALCON512;
+    
+    if (EVP_PKEY_bits(key) != 128)
+	    {
+	      DDS_Security_Exception_set(ex, DDS_AUTH_PLUGIN_CONTEXT, DDS_SECURITY_ERR_UNDEFINED_CODE, DDS_SECURITY_VALIDATION_FAILED, "Dilithium %s has unsupported key size (%d)", sub, EVP_PKEY_bits(key));
+	      return DDS_SECURITY_VALIDATION_FAILED;
+	    }
+	    //add private key verification
+	    return DDS_SECURITY_VALIDATION_OK;
+    
+    }
+    else if (strcmp(pq_key_type_str, "falcon1024")==0) {
+    	printf("FaLcOn1024 Identifieddd\n");
+        //kind = AUTH_ALGO_KIND_FALCON102;
+    
+    if (EVP_PKEY_bits(key) != 256)
+	    {
+	      DDS_Security_Exception_set(ex, DDS_AUTH_PLUGIN_CONTEXT, DDS_SECURITY_ERR_UNDEFINED_CODE, DDS_SECURITY_VALIDATION_FAILED, "Dilithium %s has unsupported key size (%d)", sub, EVP_PKEY_bits(key));
+	      return DDS_SECURITY_VALIDATION_FAILED;
+	    }
+	    //add private key verification
+	    return DDS_SECURITY_VALIDATION_OK;
+    
+    }
+
+
+    //SPHINCS+ 4 Varients
+    else if (strcmp(pq_key_type_str, "sphincssha2128fsimple")==0) {
+    	printf("FaLcOn512 Identifieddd\n");
+        //kind = AUTH_ALGO_KIND_SPHINCSSHA2128F;
+    
+    if (EVP_PKEY_bits(key) != 128)
+	    {
+	      DDS_Security_Exception_set(ex, DDS_AUTH_PLUGIN_CONTEXT, DDS_SECURITY_ERR_UNDEFINED_CODE, DDS_SECURITY_VALIDATION_FAILED, "Dilithium %s has unsupported key size (%d)", sub, EVP_PKEY_bits(key));
+	      return DDS_SECURITY_VALIDATION_FAILED;
+	    }
+	    //add private key verification
+	    return DDS_SECURITY_VALIDATION_OK;
+    
+    }
+    else if (strcmp(pq_key_type_str, "sphincssha2128ssimple")==0) {
+    	printf("FaLcOn1024 Identifieddd\n");
+        //kind = AUTH_ALGO_KIND_SPHINCSSHA2128S;
+    
+    if (EVP_PKEY_bits(key) != 128)
+	    {
+	      DDS_Security_Exception_set(ex, DDS_AUTH_PLUGIN_CONTEXT, DDS_SECURITY_ERR_UNDEFINED_CODE, DDS_SECURITY_VALIDATION_FAILED, "Dilithium %s has unsupported key size (%d)", sub, EVP_PKEY_bits(key));
+	      return DDS_SECURITY_VALIDATION_FAILED;
+	    }
+	    //add private key verification
+	    return DDS_SECURITY_VALIDATION_OK;
+    
+    }
+    else if (strcmp(pq_key_type_str, "sphincssha2192fsimple")==0) {
+    	printf("FaLcOn1024 Identifieddd\n");
+        //kind = AUTH_ALGO_KIND_SPHINCSSHA2192F;
+    
+    if (EVP_PKEY_bits(key) != 192)
+	    {
+	      DDS_Security_Exception_set(ex, DDS_AUTH_PLUGIN_CONTEXT, DDS_SECURITY_ERR_UNDEFINED_CODE, DDS_SECURITY_VALIDATION_FAILED, "Dilithium %s has unsupported key size (%d)", sub, EVP_PKEY_bits(key));
+	      return DDS_SECURITY_VALIDATION_FAILED;
+	    }
+	    //add private key verification
+	    return DDS_SECURITY_VALIDATION_OK;
+    
+    }
+    else if (strcmp(pq_key_type_str, "sphincsshake128fsimple")==0) {
+    	printf("FaLcOn1024 Identifieddd\n");
+        //kind = AUTH_ALGO_KIND_SPHINCSSHAKE128F;
+    
+    if (EVP_PKEY_bits(key) != 128)
+	    {
+	      DDS_Security_Exception_set(ex, DDS_AUTH_PLUGIN_CONTEXT, DDS_SECURITY_ERR_UNDEFINED_CODE, DDS_SECURITY_VALIDATION_FAILED, "Dilithium %s has unsupported key size (%d)", sub, EVP_PKEY_bits(key));
+	      return DDS_SECURITY_VALIDATION_FAILED;
+	    }
+	    //add private key verification
+	    return DDS_SECURITY_VALIDATION_OK;
+    
+    }
+
     DDS_Security_Exception_set(ex, DDS_AUTH_PLUGIN_CONTEXT, DDS_SECURITY_ERR_UNDEFINED_CODE, DDS_SECURITY_VALIDATION_FAILED, "%s has not supported type", sub);
     return DDS_SECURITY_VALIDATION_FAILED;
   }
@@ -796,6 +870,34 @@ AuthenticationAlgoKind_t get_authentication_algo_kind(X509 *cert)
     	printf("Dilithium5 Identified");
         kind = AUTH_ALGO_KIND_DILITHIUM5;
     }
+
+    //Falcon 2 Varients
+    else if (strcmp(key_type_str, "falcon512")==0) {
+    	printf("falcon512 Identified");
+        kind = AUTH_ALGO_KIND_FALCON512;
+    }
+    else if (strcmp(key_type_str, "falcon1024")==0) {
+    	printf("falcon1024 Identified");
+        kind = AUTH_ALGO_KIND_FALCON1024;
+    }
+    //SPHINCS+ 4 Varients
+    else if (strcmp(key_type_str, "sphincssha2128fsimple")==0) {
+    	printf("sphincssha2128fsimple Identified");
+        kind = AUTH_ALGO_KIND_SPHINCSSHA2128F;
+    }
+    else if (strcmp(key_type_str, "sphincssha2128ssimple")==0) {
+    	printf("sphincssha2128ssimple Identified");
+        kind = AUTH_ALGO_KIND_SPHINCSSHA2128S;
+    }
+    else if (strcmp(key_type_str, "sphincssha2192fsimple")==0) {
+    	printf("sphincssha2192fsimple Identified");
+        kind = AUTH_ALGO_KIND_SPHINCSSHA2192F;
+    }
+    else if (strcmp(key_type_str, "sphincsshake128fsimple")==0) {
+    	printf("sphincsshake128fsimple Identified");
+        kind = AUTH_ALGO_KIND_SPHINCSSHAKE128F;
+    }
+
     EVP_PKEY_free(pkey);
   }
   
@@ -914,7 +1016,7 @@ DDS_Security_ValidationResult_t generate_dh_keys(EVP_PKEY **dhkey, Authenticatio
     if (get_ec_dh_parameters(&params, ex) != DDS_SECURITY_VALIDATION_OK)
       goto failed;
     break;
-  //{modk}add case for kyber here (if parameters required !?){done}
+  //add case for kyber here
   case AUTH_ALGO_KIND_KYBER_768:
     printf("Kyber Key generating...\n");
     break;
@@ -922,7 +1024,6 @@ DDS_Security_ValidationResult_t generate_dh_keys(EVP_PKEY **dhkey, Authenticatio
     assert(0);
     goto failed;
   }
-  //{modk} slight if else addition{done}
   if (authKind==AUTH_ALGO_KIND_RSA_2048 || authKind==AUTH_ALGO_KIND_EC_PRIME256V1)
   {
     if ((kctx = EVP_PKEY_CTX_new(params, NULL)) == NULL)
@@ -941,7 +1042,7 @@ DDS_Security_ValidationResult_t generate_dh_keys(EVP_PKEY **dhkey, Authenticatio
       goto failed_kctx;
     }
   }
-  //{modk}write kyber key generation functions here
+  //kyber key generation
   else if (authKind==AUTH_ALGO_KIND_KYBER_768)
   {
     if (!alg_is_enabled("kyber768")) {
@@ -977,7 +1078,7 @@ failed:
   return DDS_SECURITY_VALIDATION_FAILED;
 }
 
-//{modk}generate_kyber_secret_and_cipher fn comes here
+//generate_kyber_secret_and_cipher fn
 DDS_Security_ValidationResult_t generate_kyber_secret_and_cipher(EVP_PKEY *rempub_pkey, AuthenticationAlgoKind_t algo, unsigned char **secret_buf, uint32_t *length, unsigned char **enc_secret_buf, uint32_t *length2, DDS_Security_SecurityException *ex)
 {
   EVP_PKEY_CTX *origctx2 = NULL;
@@ -1040,7 +1141,7 @@ DDS_Security_ValidationResult_t generate_kyber_secret_and_cipher(EVP_PKEY *rempu
     return DDS_SECURITY_VALIDATION_FAILED;
 }
 
-//{modk} add kyber secret decryption function here
+//kyber secret decryption
 DDS_Security_ValidationResult_t decrypt_kyber_secret_cipher(EVP_PKEY *kyberpriv_pkey, AuthenticationAlgoKind_t algo, unsigned char **enc_secret_buf, uint32_t *enc_sec_length, unsigned char **dec_secret_buf, uint32_t *dec_sec_length, DDS_Security_SecurityException *ex)
 {
   EVP_PKEY_CTX *origctx3 = NULL;
@@ -1192,13 +1293,12 @@ failed_key:
   return DDS_SECURITY_VALIDATION_FAILED;
 }
 
-//{modk} kyber key serialization function here
+//kyber key serialization
 static DDS_Security_ValidationResult_t dh_public_key_to_binary_kyber(EVP_PKEY *pkey, unsigned char **buffer, uint32_t *length, BUF_MEM **encoded, DDS_Security_SecurityException *ex)
 {
   OSSL_ENCODER_CTX *ectx;
   BIO *mem_ser = NULL;
   BUF_MEM *mem_buf = NULL;
-  //{modk} this might be needed to allocate buffer size. check after 1st compile
   //size_t sz;
   
   int ok = 0;
@@ -1247,7 +1347,7 @@ static DDS_Security_ValidationResult_t dh_public_key_to_binary_kyber(EVP_PKEY *p
     return DDS_SECURITY_VALIDATION_FAILED;  
 }
 
-//{modk} modify for kyber keys serializations{done}
+//modify for kyber keys serializations
 DDS_Security_ValidationResult_t dh_public_key_to_oct(EVP_PKEY *pkey, AuthenticationAlgoKind_t algo, unsigned char **buffer, uint32_t *length, DDS_Security_SecurityException *ex)
 {
   BUF_MEM *encoded = NULL;
@@ -1260,7 +1360,7 @@ DDS_Security_ValidationResult_t dh_public_key_to_oct(EVP_PKEY *pkey, Authenticat
     return dh_public_key_to_oct_modp(pkey, buffer, length, ex);
   case AUTH_ALGO_KIND_EC_PRIME256V1:
     return dh_public_key_to_oct_ecdh(pkey, buffer, length, ex);
-  //{modk} add case for Kyber. Write a new function probably kyber_public_key_to_oct_?() similar to above two{done}
+  //add case for Kyber
   case AUTH_ALGO_KIND_KYBER_768:
     //return dh_public_key_to_binary_kyber(pkey, buffer, length, &encoded, ex);
     if(dh_public_key_to_binary_kyber(pkey, buffer, length, &encoded, ex)!=DDS_SECURITY_VALIDATION_OK)
@@ -1389,7 +1489,6 @@ fail_alloc_point:
 fail_alloc_group:
   return DDS_SECURITY_VALIDATION_FAILED;
 }
-//{modk} see if types of *keystr and size are ok ? else change them to const void and const long
 dh_bin_to_public_key_kyber(EVP_PKEY **object, const unsigned char *keystr, uint32_t size, DDS_Security_SecurityException *ex)
 {
   EVP_PKEY *pkey = NULL;
@@ -1437,7 +1536,7 @@ DDS_Security_ValidationResult_t dh_oct_to_public_key(EVP_PKEY **data, Authentica
     return dh_oct_to_public_key_modp(data, str, size, ex);
   case AUTH_ALGO_KIND_EC_PRIME256V1:
     return dh_oct_to_public_key_ecdh(data, str, size, ex);
-  //{modk} add case for kyber here {in-progress}
+  //add case for kyber here
   case AUTH_ALGO_KIND_KYBER_768:
     return dh_bin_to_public_key_kyber(data, str, size, ex);
   default:

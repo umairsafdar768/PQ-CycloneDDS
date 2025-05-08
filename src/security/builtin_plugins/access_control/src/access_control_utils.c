@@ -549,4 +549,3 @@ bool ac_fnmatch(const char* pat, const char* str)
     }
   }
 }
-

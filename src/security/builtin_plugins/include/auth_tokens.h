@@ -43,7 +43,6 @@
 #define DDS_AUTHTOKEN_PROP_C_DSIGN_ALGO "c.dsign_algo"
 #define DDS_AUTHTOKEN_PROP_C_KAGREE_ALGO "c.kagree_algo"
 #define DDS_AUTHTOKEN_PROP_HASH_C1 "hash_c1"
-//{modk} rename as appropriate here
 #define DDS_AUTHTOKEN_PROP_DH1 "dh1"
 #define DDS_AUTHTOKEN_PROP_CHALLENGE1 "challenge1"
 //#define DDS_AUTHTOKEN_PROP_OCSP_STATUS "ocsp_status"
